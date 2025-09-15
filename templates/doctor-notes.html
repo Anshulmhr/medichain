@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis Notes - MediChain</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('doctor_dashboard') }}" class="logo">
+                    <i class="fas fa-plus-square"></i> MediChain
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+        <ul>
+        <li class="{% if request.path == url_for('doctor_dashboard') %}active{% endif %}">
+            <a href="{{ url_for('doctor_dashboard') }}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_patients') %}active{% endif %}">
+            <a href="{{ url_for('doctor_patients') }}">
+                <i class="fas fa-users"></i> My Patients
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_requests') %}active{% endif %}">
+            <a href="{{ url_for('doctor_requests') }}">
+                <i class="fas fa-user-plus"></i> Access Requests
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_notes') %}active{% endif %}">
+            <a href="{{ url_for('doctor_notes') }}">
+                <i class="fas fa-notes-medical"></i> Diagnosis Notes
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_settings') %}active{% endif %}">
+            <a href="{{ url_for('doctor_settings') }}">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </li>
+        </ul>
+      </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <!-- Top Navigation Bar -->
+            <header class="dashboard-header">
+                <div class="header-search">
+                    <form action="{{ url_for('doctor_search') }}" method="GET" class="search-form flex items-center space-x-2">
+                    <i class="fas fa-search text-gray-500"></i>
+                        <input type="text" name="q" placeholder="Search patients..." 
+                        class="bg-white px-3 py-1 rounded border border-gray-300 focus:outline-none"
+                        required>
+                    </form>
+                </div>
+
+
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://shorturl.at/6OqI1" alt="Doctor Profile">
+                        <span>Dr. {{ name }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="content-header">
+                    <h1>Diagnosis Notes</h1>
+                    <button class="btn btn-primary" id="newNoteBtn">
+                        <i class="fas fa-plus"></i> New Note
+                    </button>
+                </div>
+                
+                <!-- Filter Options -->
+                <div class="filter-container">  
+                    <div class="filter-group">
+                        <label for="date-filter">Date Range:</label>
+                        <select id="date-filter">
+                            <option value="all">All Time</option>
+                            <option value="last-week">Last Week</option>
+                            <option value="last-month">Last Month</option>
+                            <option value="last-3months">Last 3 Months</option>
+                            <option value="last-year">Last Year</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="type-filter">Note Type:</label>
+                        <select id="type-filter">
+                            <option value="all">All Types</option>
+                            <option value="diagnosis">Diagnosis</option>
+                            <option value="prescription">Prescription</option>
+                            <option value="follow-up">Follow-up</option>
+                            <option value="lab-results">Lab Results</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Notes List -->
+                <div class="records-table-container">
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Note Type</th>
+                                <th>Title</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for note in notes %}
+                            <tr>
+                                <td>
+                                    <div class="record-type">
+                                        <img src="{{ note.patient_image }}" alt="{{ note.patient_name }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                                        <span>{{ note.patient_name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ note.date }}</td>
+                                <td><span class="note-type {{ note.note_type | lower | replace(' ', '-') }}">{{ note.note_type }}</span></td>
+                                <td>{{ note.title }}</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="btn-icon" title="View Note">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-icon" title="Edit Note">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon" title="Delete Note">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New/Edit Note Modal -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Diagnosis Note</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    <div class="form-group">
+                        <label for="note-patient">Patient</label>
+                        <select id="note-patient" required>
+                            <option value="">Select Patient</option>
+                            <option value="john-doe">John Doe</option>
+                            <option value="emma-wilson">Emma Wilson</option>
+                            <option value="michael-brown">Michael Brown</option>
+                            <option value="jennifer-lee">Jennifer Lee</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note-type">Note Type</label>
+                        <select id="note-type" required>
+                            <option value="diagnosis">Diagnosis</option>
+                            <option value="prescription">Prescription</option>
+                            <option value="follow-up">Follow-up</option>
+                            <option value="lab-results">Lab Results</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note-title">Title</label>
+                        <input type="text" id="note-title" placeholder="Enter note title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note-content">Note Content</label>
+                        <textarea id="note-content" rows="6" placeholder="Enter detailed diagnosis notes" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note-attachments">Attachments (Optional)</label>
+                        <div class="file-upload">
+                            <input type="file" id="note-attachments" multiple>
+                            <label for="note-attachments" class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i> Choose Files
+                            </label>
+                            <span class="file-selected">No files selected</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Privacy Level</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="privacy" value="patient-visible" checked>
+                                Visible to Patient
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="privacy" value="doctor-only">
+                                Doctor Only
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Save Note</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>

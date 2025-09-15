@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Patients - MediChain</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('doctor_dashboard') }}" class="logo">
+                    <i class="fas fa-plus-square"></i> MediChain
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+        <ul>
+        <li class="{% if request.path == url_for('doctor_dashboard') %}active{% endif %}">
+            <a href="{{ url_for('doctor_dashboard') }}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_patients') %}active{% endif %}">
+            <a href="{{ url_for('doctor_patients') }}">
+                <i class="fas fa-users"></i> My Patients
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_requests') %}active{% endif %}">
+            <a href="{{ url_for('doctor_requests') }}">
+                <i class="fas fa-user-plus"></i> Access Requests
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_notes') %}active{% endif %}">
+            <a href="{{ url_for('doctor_notes') }}">
+                <i class="fas fa-notes-medical"></i> Diagnosis Notes
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_settings') %}active{% endif %}">
+            <a href="{{ url_for('doctor_settings') }}">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </li>
+        </ul>
+      </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <!-- Top Navigation Bar -->
+            <header class="dashboard-header">
+                <div class="header-search">
+                    <form action="{{ url_for('doctor_search') }}" method="GET" class="search-form flex items-center space-x-2">
+                    <i class="fas fa-search text-gray-500"></i>
+                        <input type="text" name="q" placeholder="Search patients..." 
+                        class="bg-white px-3 py-1 rounded border border-gray-300 focus:outline-none"
+                        required>
+                    </form>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://shorturl.at/6OqI1" alt="Doctor Profile">
+                        <span>Dr. {{ name }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="content-header">
+                    <h1>My Patients</h1>
+                </div>
+             <div class="filter-container">
+                <div class="filter-group">
+                    <label for="sort-by">Sort by:</label>
+                    <select id="sort-by">
+                        <option value="recent">Most Recent</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="access">Access Type</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-access">Access Type:</label>
+                    <select id="filter-access">
+                        <option value="all">All</option>
+                        <option value="full">Full Access</option>
+                        <option value="limited">Limited Access</option>
+                        <option value="emergency">Emergency Access</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="patients-list">
+    {% for patient in patients %}
+    <div class="record-card" data-name="{{ patient.name | lower }}" data-access="{{ patient.access_type }}" data-timestamp="{{ patient.timestamp }}">
+        <div class="record-icon">
+            <i class="fas fa-user"></i>
+        </div>
+        <div class="record-details">
+            <h3>{{ patient.name }}</h3>
+            <p>Last Visit: {{ patient.timestamp }} • {{ patient.reason }}</p>
+            <span class="record-date">Access Granted: {{ patient.access_type.title() }} Access</span>
+        </div>
+        <div class="record-actions">
+            <button class="btn-icon" title="View Records">
+                <i class="fas fa-folder-open"></i>
+            </button>
+            <button class="btn-icon" title="Add Note">
+                <i class="fas fa-notes-medical"></i>
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+                
+    <!-- Patients List -->
+        <div class="records-table-container">
+            <table class="records-table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Last Visit</th>
+                    <th>Access Type</th>
+                    <th>Access Expiration</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                <td>
+                    <div class="record-type">
+                    <div>
+                        <span class="patient-name">{{ patient.name }}</span>
+                        <span class="patient-info">{{ patient.age }} yrs • {{ patient.gender }} • {{ patient.reason }}</span>
+                    </div>
+                    </div>
+                </td>
+                <td>{{ patient.timestamp }}</td>
+                <td>    
+                    <span class="access-badge {{ patient.access_type | lower }}">
+                    {{ patient.access_type.title() }}
+                    </span>
+                </td>
+                <td>{{ patient.access_expiration }}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn-icon" title="View Records">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <button class="btn-icon" title="Add Note">
+                            <i class="fas fa-notes-medical"></i>
+                        </button>
+                        <button class="btn-icon" title="Patient Details">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>  
+                </td>   
+                </tr>
+                    {% endfor %}
+            </tbody>
+            </table>
+        </div>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

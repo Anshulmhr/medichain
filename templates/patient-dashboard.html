@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - MediChain</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('patient_dashboard') }}" class="logo">>
+                    <i class="fas fa-plus-square"></i>MediChain
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+            <ul>
+                <li class="{% if request.path == url_for('patient_dashboard') %}active{% endif %}">
+                    <a href="{{ url_for('patient_dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li class="{% if request.path == url_for('patient_records') %}active{% endif %}">
+                    <a href="{{ url_for('patient_records') }}">
+                    <i class="fas fa-file-medical"></i> Medical Records
+                    </a>
+                </li>
+                <li class="{% if request.path == url_for('patient_access') %}active{% endif %}">
+                    <a href="{{ url_for('patient_access') }}">
+                    <i class="fas fa-user-md"></i> Doctor Access
+                    </a>
+                </li>
+                <li class="{% if request.path == url_for('patient_settings') %}active{% endif %}">
+                    <a href="{{ url_for('patient_settings') }}">
+                    <i class="fas fa-cog"></i> Settings
+                    </a>
+                </li>
+            </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <!-- Top Navigation Bar -->
+            <header class="dashboard-header">
+                <div class="header-search">
+                    <form action="{{ url_for('patient_search') }}" method="GET" class="search-form">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="q" placeholder="Search records..." required>
+                    </form>
+                </div>
+
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://shorturl.at/6OqI1" alt="User Profile">
+                        <span>{{ name }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <h1>Patient Dashboard</h1>
+                <p class="welcome-message">Welcome back, {{ name }} Here's an overview of your medical records.</p>
+
+                <!-- Dashboard Stats -->
+                <div class="stats-container">
+                    <!-- Medical Records -->
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>{{ stats.medical_records }}</h3>
+                            <p>Medical Records</p>
+                        </div>
+                    </div>
+
+                    <!-- Authorized Doctors -->
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>{{ stats.authorized_doctors }}</h3>
+                            <p>Authorized Doctors</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>{{ stats.recent_activities }}</h3>
+                            <p>Recent Activities</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Recent Records -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Recent Medical Records</h2>
+                        <a href="{{ url_for('patient_access') }}" class="view-all">View All</a>
+                    </div>
+                    <div class="records-list">
+                        {% for record in recent_records %}
+                        <div class="record-card">
+                            <div class="record-icon">
+                                {% if record.type == 'prescription' %}
+                                <i class="fas fa-pills"></i>
+                                {% elif record.type == 'lab-results' %}
+                                <i class="fas fa-vial"></i>
+                                {% elif record.type == 'examination' %}
+                                <i class="fas fa-file-prescription"></i>
+                                {% else %}
+                                <i class="fas fa-notes-medical"></i>
+                                {% endif %}
+                            </div>
+                            <div class="record-details">
+                                <h3>{{ record.type.replace('-', ' ').title() }}</h3>
+                                <p>Dr. {{ record.doctor }} • {{ record.reason }}</p>
+                                <span class="record-date">{{ record.timestamp }}</span>
+                            </div>
+                            <div class="record-actions">
+                                <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p style="margin-top: 1rem;">No recent approved records available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+
+            <!-- Doctor Access -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Authorized Doctors</h2>
+                    <a href="{{ url_for('patient_access') }}" class="view-all">Manage Access</a>
+                </div>
+                <div class="doctors-list">
+                    {% for doc in authorized_doctor_list %}
+                    <div class="doctor-card">
+                        <img src="{{ doc['profile_image'] or 'https://shorturl.at/6OqI1' }}" alt="Dr. {{ doc['name'] }}">
+                        <div class="doctor-details">
+                            <h3>Dr. {{ doc['name'] }}</h3>
+                            <p>{{ doc['specialization'] or 'General Physician' }} • MediChain</p>
+                            <span class="access-status active">Active Access</span>
+                        </div>
+                        <form method="POST" action="{{ url_for('revoke_access') }}">
+                            <input type="hidden" name="doctor_name" value="{{ doc['name'] }}">
+                            <button class="btn btn-outline btn-small" type="submit">Revoke</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <p style="padding-left: 10px;">No doctors currently authorized.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

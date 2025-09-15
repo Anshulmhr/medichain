@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Requests - MediChain</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('doctor_dashboard') }}" class="logo">
+                    <i class="fas fa-plus-square"></i> MediChain
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+        <ul>
+        <li class="{% if request.path == url_for('doctor_dashboard') %}active{% endif %}">
+            <a href="{{ url_for('doctor_dashboard') }}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_patients') %}active{% endif %}">
+            <a href="{{ url_for('doctor_patients') }}">
+                <i class="fas fa-users"></i> My Patients
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_requests') %}active{% endif %}">
+            <a href="{{ url_for('doctor_requests') }}">
+                <i class="fas fa-user-plus"></i> Access Requests
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_notes') %}active{% endif %}">
+            <a href="{{ url_for('doctor_notes') }}">
+                <i class="fas fa-notes-medical"></i> Diagnosis Notes
+            </a>
+        </li>
+        <li class="{% if request.path == url_for('doctor_settings') %}active{% endif %}">
+            <a href="{{ url_for('doctor_settings') }}">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </li>
+        </ul>
+      </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <!-- Top Navigation Bar -->
+            <header class="dashboard-header">
+                <div class="header-search">
+                    <form action="{{ url_for('doctor_search') }}" method="GET" class="search-form flex items-center space-x-2">
+                    <i class="fas fa-search text-gray-500"></i>
+                        <input type="text" name="q" placeholder="Search patients..." 
+                        class="bg-white px-3 py-1 rounded border border-gray-300 focus:outline-none"
+                        required>
+                    </form>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://shorturl.at/6OqI1" alt="Doctor Profile">
+                        <span>Dr. {{ name }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="content-header">
+                    <h1>Patient Access Requests</h1>
+                    <button class="btn btn-primary" id="newRequestBtn">
+                        <i class="fas fa-plus"></i> New Request
+                    </button>
+                </div>
+                
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="pending">Pending ({{ counts.pending }})</button>
+                    <button class="tab-btn" data-tab="approved">Approved ({{ counts.approved }})</button>
+                    <button class="tab-btn" data-tab="denied">Denied ({{ counts.denied }})</button>
+                </div>
+
+                    
+                    <!-- Pending Requests Tab -->
+    <div class="tab-content active" id="pending-tab">
+        <div class="records-table-container">
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Request Date</th>
+                        <th>Access Type</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in pending_requests %}
+                    <tr>
+                        <td><div class="record-type"><span>{{ request.patient_name }}</span></div></td>
+                        <td>{{ request.timestamp }}</td>
+                        <td>{{ request.access_type.title() }}</td>
+                        <td>{{ request.reason }}</td>
+                        <td><span class="access-badge pending">Awaiting Approval</span></td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon" title="Edit Request"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon" title="Cancel Request"><i class="fas fa-times"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center;">No pending requests.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Approved Requests Tab -->
+    <div class="tab-content" id="approved-tab">
+        <div class="records-table-container">
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Approved Date</th>
+                        <th>Access Type</th>
+                        <th>Expiration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in approved_requests %}
+                    <tr>
+                        <td><div class="record-type"><span>{{ request.patient_name }}</span></div></td>
+                        <td>{{ request.updated_at or request.timestamp }}</td>
+                        <td>{{ request.access_type.title() }}</td>
+                        <td>{{ request.access_expiration or "—" }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn-icon" title="View Records"><i class="fas fa-folder-open"></i></button>
+                                <button class="btn-icon" title="Add Note"><i class="fas fa-notes-medical"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center;">No approved requests.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Denied Requests Tab -->
+    <div class="tab-content" id="denied-tab">
+        <div class="records-table-container">
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Request Date</th>
+                        <th>Denied Date</th>
+                        <th>Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in denied_requests %}
+                    <tr>
+                        <td><div class="record-type"><span>{{ request.patient_name }}</span></div></td>
+                        <td>{{ request.timestamp }}</td>
+                        <td>{{ request.updated_at or "—" }}</td>
+                        <td>{{ request.reason }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn-icon" title="Request Again"><i class="fas fa-redo"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center;">No denied requests.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <!-- New Request Modal -->
+            <div class="modal" id="newRequestModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Request Patient Access</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{{ url_for('submit_request') }}">
+                            <div class="form-group">
+                                <label for="patient-search">Search Patient</label>
+                                <div class="search-input">
+                                    <input type="text" id="patient-search" name="patient_identifier" placeholder="Enter patient name or ID" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="access-level">Access Level</label>
+                                <select id="access-level" name="access_level" required>
+                                    <option value="full">Full Access</option>
+                                    <option value="limited" selected>Limited Access</option>
+                                    <option value="emergency">Emergency Access</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Record Types</label>
+                                <div class="checkbox-group">
+                                    {% for record in ["examinations", "prescriptions", "lab-results", "imaging", "allergies"] %}
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="record_types" value="{{ record }}"
+                                            {% if record in ['examinations', 'prescriptions', 'lab-results'] %} checked {% endif %}>
+                                        {{ record.replace('-', ' ').title() }}
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="request-reason">Reason for Request</label>
+                                <textarea id="request-reason" name="reason" rows="3" placeholder="Explain why you need access" required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="access-duration">Access Duration</label>
+                                <select id="access-duration" name="access_duration">
+                                    <option value="1month">1 Month</option>
+                                    <option value="3months">3 Months</option>
+                                    <option value="6months" selected>6 Months</option>
+                                    <option value="1year">1 Year</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-full">Submit Request</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
